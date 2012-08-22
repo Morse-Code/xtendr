@@ -2,7 +2,7 @@
 //  User.h
 //  xtendr
 //
-//  Created by Tony Million on 20/08/2012.
+//  Created by Tony Million on 21/08/2012.
 //  Copyright (c) 2012 Tony Million. All rights reserved.
 //
 
@@ -18,8 +18,8 @@
 @property (nonatomic, retain) NSDate * created_at;
 @property (nonatomic, retain) NSString * desc_html;
 @property (nonatomic, retain) NSString * desc_text;
-@property (nonatomic, retain) NSNumber * followed_by;
-@property (nonatomic, retain) NSNumber * follows;
+@property (nonatomic, retain) NSNumber * followers;
+@property (nonatomic, retain) NSNumber * following;
 @property (nonatomic, retain) NSNumber * follows_you;
 @property (nonatomic, retain) NSString * id;
 @property (nonatomic, retain) NSNumber * intid;

@@ -8,19 +8,28 @@
 
 #import "XTTimelineViewController.h"
 
+#import "UIImageView+NetworkLoad.h"
+#import "ExpandableNavigation.h"
+
 #import "XTTimelineCell.h"
 
 #import "XTHTTPClient.h"
-#import "XTProfileController.h"
+#import "TMHTTPRequest.h"
 
+#import "XTProfileController.h"
 #import "XTNewPostViewController.h"
 #import "XTProfileViewController.h"
-
-#import "UIImageView+NetworkLoad.h"
-
 #import "XTPostController.h"
 
-@interface XTTimelineViewController () <UITableViewDataSource, UITableViewDelegate, NSFetchedResultsControllerDelegate>
+#import "XTPhotoPostController.h"
+
+#import "NACaptureViewController.h"
+
+#import "XTConversationViewController.h"
+
+#define POST_LIMIT	20
+
+@interface XTTimelineViewController () <ExpandableNavigationDelegate, UITableViewDataSource, UITableViewDelegate, NSFetchedResultsControllerDelegate, NACaptureDelegate>
 
 @property(weak)	IBOutlet UIView					*headerView;
 @property(weak) IBOutlet UILabel				*releaseToRefreshLabel;
@@ -47,6 +56,8 @@
 @property(strong)	NSFetchedResultsController	*fetchedResultsController;
 
 @property(strong) NSIndexPath					*indexPathAtTopForUpdate;
+
+@property(strong) ExpandableNavigation			*navigation;
 
 @end
 
@@ -95,7 +106,7 @@
 
 
 	self.addPostButton = [UIButton buttonWithType:UIButtonTypeCustom];
-	self.addPostButton.frame = CGRectMake(4,
+	self.addPostButton.frame = CGRectMake(3,
 										  self.view.bounds.size.height - 52,
 										  48,
 										  48);
@@ -103,10 +114,11 @@
 
 	[self.addPostButton setImage:[UIImage imageNamed:@"addpostbutton"] forState:UIControlStateNormal];
 
-	[self.addPostButton addTarget:self
-						   action:@selector(addPost:)
-				 forControlEvents:UIControlEventTouchUpInside];
-
+	/*
+	 [self.addPostButton addTarget:self
+	 action:@selector(addPost:)
+	 forControlEvents:UIControlEventTouchUpInside];
+	 */
 	[self.view addSubview:self.addPostButton];
 
 
@@ -119,10 +131,25 @@
 	[self.view addSubview:self.addPostOverlayImageView];
 	[self.view bringSubviewToFront:self.addPostOverlayImageView];
 
-	self.addPostOverlayImageView.frame = CGRectMake(4,
-													self.view.bounds.size.height - 54,
+	self.addPostOverlayImageView.frame = CGRectMake(3,
+													self.view.bounds.size.height - 53,
 													48,
 													48);
+
+
+
+
+
+    self.navigation = [[ExpandableNavigation alloc] initWithMainButton:self.addPostButton
+																radius:128
+															   overlay:self.addPostOverlayImageView];
+
+    self.navigation.expandableNavigationDelegate = self;
+
+    self.navigation.onTopOfView = self.tableView;
+
+
+
 
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(profileRefreshed:)
@@ -163,8 +190,8 @@
 
     [fetchRequest setPredicate:predicate];
 
-	[fetchRequest setFetchLimit:100];
-	[fetchRequest setFetchBatchSize:100];
+	[fetchRequest setFetchLimit:POST_LIMIT];
+	[fetchRequest setFetchBatchSize:POST_LIMIT];
 
     // Create and initialize the fetchedResultsController.
     self.fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
@@ -179,12 +206,21 @@
 
 	/*
 	 //DONT DO THIS YET
-	if(self.fetchedResultsController.fetchedObjects && self.fetchedResultsController.fetchedObjects.count)
-	{
-		Post * firstPost = [self.fetchedResultsController.fetchedObjects objectAtIndex:0];
-		self.firstID = firstPost.id;
-	}
+	 if(self.fetchedResultsController.fetchedObjects && self.fetchedResultsController.fetchedObjects.count)
+	 {
+	 Post * firstPost = [self.fetchedResultsController.fetchedObjects objectAtIndex:0];
+	 self.firstID = firstPost.id;
+	 }
 	 */
+
+	if(!self.doneInitialLoad)
+	{
+		[self loadPosts];
+	}
+	else
+	{
+		[self loadNewerPosts];
+	}
 
 }
 
@@ -198,17 +234,9 @@
 {
 	[super viewWillAppear:animated];
 
-	if(!self.doneInitialLoad)
-	{
-		[self loadPosts];
-	}
-	else
-	{
-		[self loadNewerPosts];
-	}
-	
+
 	[self.headerBackgroundView loadFromURL:[XTProfileController sharedInstance].profileUser.cover_image.url
-						  placeholderImage:nil
+						  placeholderImage:[UIImage imageNamed:@"brownlinen"]
 								 fromCache:[XTAppDelegate sharedInstance].userCoverArtCache];
 }
 
@@ -245,22 +273,17 @@
 	XTTimelineCell *cell = [tableView dequeueReusableCellWithIdentifier:@"timelineCell"];
 
 	cell.post = post;
-	cell.faceTapBlock = ^(Post * post)
-	{
-		XTProfileViewController * pvc = [[XTProfileViewController alloc] initWithUserID:post.userid];
-		[self.navigationController pushViewController:pvc animated:YES];
-	};
 
 	cell.quickReplyBlock = ^(Post * post)
 	{
 		XTNewPostViewController * npvc = [[XTNewPostViewController alloc] init];
 		npvc.replyToPost = post;
-		
+
 		[self presentViewController:[[UINavigationController alloc] initWithRootViewController:npvc]
 						   animated:YES
 						 completion:nil];
 	};
-	
+
 	return cell;
 }
 
@@ -276,37 +299,42 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+	Post * post = [self.fetchedResultsController objectAtIndexPath:indexPath];
+
+	XTConversationViewController * cvc = [[XTConversationViewController alloc] initWithPost:post];
+
+	[self.navigationController pushViewController:cvc animated:YES];
 }
 
 #pragma mark - network stuff
 
 -(void)loadPosts
 {
-/*
- BRAIN DUMP:
- 
- FIRST: 
- 
- see if there are objects from the FRC and get the newest ID = topFRCID
+	/*
+	 BRAIN DUMP:
 
- So we get here and we load some posts (100),
- 
- so then we need to do the following
- self.firstpost = results[0]
- 
- if(result[last].id < topFRCID)
-	// we have an overlap; great we're sorted
- else
-	self.lastpost = result[last]
+	 FIRST:
 
- 
- */
+	 see if there are objects from the FRC and get the newest ID = topFRCID
+
+	 So we get here and we load some posts (100),
+
+	 so then we need to do the following
+	 self.firstpost = results[0]
+
+	 if(result[last].id < topFRCID)
+	 // we have an overlap; great we're sorted
+	 else
+	 self.lastpost = result[last]
+
+
+	 */
 	if(self.loadRequest)
 	{
 		DLog(@"load already in progress!");
 		return;
 	}
-	
+
 	DLog(@"loadPosts");
 
 	NSMutableDictionary * params = [NSMutableDictionary dictionaryWithCapacity:2];
@@ -316,7 +344,7 @@
 	//			   forKey:@"since_id"];
 	//}
 
-	[params setObject:[NSNumber numberWithUnsignedInteger:100]
+	[params setObject:[NSNumber numberWithUnsignedInteger:POST_LIMIT]
 			   forKey:@"count"];
 
 	DLog(@"params = %@", params);
@@ -339,79 +367,80 @@
 	self.lastRefreshLabel.text = NSLocalizedString(@"Refresh In Progress", @"");
 
 	self.loadRequest = [[XTHTTPClient sharedClient] getPath:path
-							  parameters:params
-								 success:^(TMHTTPRequest *operation, id responseObject) {
-									 self.loadRequest = nil;
-									 [self.headerActivityIndicator stopAnimating];
-									 //DLog(@"login S: %@", responseObject);
-									 if(responseObject && [responseObject isKindOfClass:[NSArray class]])
-									 {
-										 NSArray * temp = responseObject;
-										 if(temp.count)
-										 {
-											 DLog(@"Got %d posts", temp.count);
-											 [[XTPostController sharedInstance] addPostArray:temp
-																				fromMyStream:self.timelineMode == kMyTimelineMode
-																				fromMentions:self.timelineMode == kMentionsTimelineMode];
+												 parameters:params
+													success:^(TMHTTPRequest *operation, id responseObject) {
+														self.loadRequest = nil;
+														[self.headerActivityIndicator stopAnimating];
+														//DLog(@"login S: %@", responseObject);
+														if(responseObject && [responseObject isKindOfClass:[NSArray class]])
+														{
+															NSArray * temp = responseObject;
+															if(temp.count)
+															{
+																DLog(@"Got %d posts", temp.count);
+																[[XTPostController sharedInstance] addPostArray:temp
+																								   fromMyStream:self.timelineMode == kMyTimelineMode
+																								   fromMentions:self.timelineMode == kMentionsTimelineMode];
 
-											 self.firstID	= [[temp objectAtIndex:0] objectForKey:@"id"];
+																self.firstID	= [[temp objectAtIndex:0] objectForKey:@"id"];
 
-											 if(!self.lastID)
-												 self.lastID	= [[temp lastObject] objectForKey:@"id"];
+																if(!self.lastID)
+																	self.lastID	= [[temp lastObject] objectForKey:@"id"];
 
-											 self.lastLoadCount = temp.count;
+																self.lastLoadCount = temp.count;
 
-											 self.doneInitialLoad = YES;
-										 }
-										 else
-										 {
-											 DLog(@"Nothing new");
-										 }
+																self.doneInitialLoad = YES;
+															}
+															else
+															{
+																DLog(@"Nothing new");
+																self.lastRefreshLabel.text = NSLocalizedString(@"Nothing New...", @"");
+															}
 
 
-										 //TODO: detect a discontinuity please
-										 /*
-										 if(self.posts)
-										 {
-											 if(temp.count)
-											 {
-												 // so what we need to do, is detect if the new posts we just got
-												 // ARE NOT continuous with the old set of posts
-												 // we do not want to end up in a situation where we have
-												 // posts 100-80 then 70-40 then 25-0 - that is a disconinuous list!
+															//TODO: detect a discontinuity please
+															/*
+															 if(self.posts)
+															 {
+															 if(temp.count)
+															 {
+															 // so what we need to do, is detect if the new posts we just got
+															 // ARE NOT continuous with the old set of posts
+															 // we do not want to end up in a situation where we have
+															 // posts 100-80 then 70-40 then 25-0 - that is a disconinuous list!
 
-												 NSString * tempLast = [[temp lastObject] objectForKey:@"id"];
-												 // temp value would be 80 in this case
-												 // first value would be 70
-												 
-												 if(self.firstID.integerValue < (tempLast.integerValue-1))
-												 {
-													 // discontinuation detected.
-													 // TODO: deal with this.
-													 self.lastID = tempLast;
-												 }
+															 NSString * tempLast = [[temp lastObject] objectForKey:@"id"];
+															 // temp value would be 80 in this case
+															 // first value would be 70
 
-												 self.posts = [temp arrayByAddingObjectsFromArray:self.posts];
-											 }
-										 }
-										 else
-										 {
-											 self.posts = temp;
-											 self.lastID = [[temp lastObject] objectForKey:@"id"];
-										 }
-										 [self.tableView reloadData];
- */
+															 if(self.firstID.integerValue < (tempLast.integerValue-1))
+															 {
+															 // discontinuation detected.
+															 // TODO: deal with this.
+															 self.lastID = tempLast;
+															 }
 
-										 self.lastRefreshLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Last Refresh: %@", @""), [NSDateFormatter localizedStringFromDate:[NSDate date] dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterShortStyle]];
+															 self.posts = [temp arrayByAddingObjectsFromArray:self.posts];
+															 }
+															 }
+															 else
+															 {
+															 self.posts = temp;
+															 self.lastID = [[temp lastObject] objectForKey:@"id"];
+															 }
+															 [self.tableView reloadData];
+															 */
+														}
+													}
+													failure:^(TMHTTPRequest *operation, NSError *error) {
+														self.loadRequest = nil;
+														[self.headerActivityIndicator stopAnimating];
 
-									 }
-								 }
-								 failure:^(TMHTTPRequest *operation, NSError *error) {
-									 self.loadRequest = nil;
-									 [self.headerActivityIndicator stopAnimating];
+														DLog(@"login F: %@", operation.responseString);
 
-									 DLog(@"login F: %@", operation.responseString);
-								 }];
+														self.lastRefreshLabel.text = NSLocalizedString(@"Network Error :(", @"");
+
+													}];
 }
 
 -(void)loadNewerPosts
@@ -431,7 +460,7 @@
 				   forKey:@"since_id"];
 	}
 
-	[params setObject:[NSNumber numberWithUnsignedInteger:100]
+	[params setObject:[NSNumber numberWithUnsignedInteger:POST_LIMIT]
 			   forKey:@"count"];
 
 	DLog(@"params = %@", params);
@@ -476,16 +505,17 @@
 															else
 															{
 																DLog(@"Nothing new");
+																self.lastRefreshLabel.text = NSLocalizedString(@"Nothing New...", @"");
 															}
-
-															self.lastRefreshLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Last Refresh: %@", @""), [NSDateFormatter localizedStringFromDate:[NSDate date] dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterShortStyle]];
-															
 														}
 													}
 													failure:^(TMHTTPRequest *operation, NSError *error) {
 														self.loadRequest = nil;
 														[self.headerActivityIndicator stopAnimating];
-														
+
+														self.lastRefreshLabel.text = NSLocalizedString(@"Network Error :(", @"");
+
+
 														DLog(@"login F: %@", operation.responseString);
 													}];
 }
@@ -503,7 +533,7 @@
 	if(!self.lastID)
 	{
 		DLog(@"LastID not valid");
-		
+
 		return;
 	}
 
@@ -515,7 +545,7 @@
 				   forKey:@"before_id"];
 	}
 
-	[params setObject:[NSNumber numberWithUnsignedInteger:100]
+	[params setObject:[NSNumber numberWithUnsignedInteger:POST_LIMIT]
 			   forKey:@"count"];
 
 	NSString * path;
@@ -549,7 +579,7 @@
 																[[XTPostController sharedInstance] addPostArray:responseObject
 																								   fromMyStream:self.timelineMode == kMyTimelineMode
 																								   fromMentions:self.timelineMode == kMentionsTimelineMode];
-																
+
 																self.lastID = [[temp lastObject] objectForKey:@"id"];
 																self.lastLoadCount += temp.count;
 															}
@@ -558,8 +588,11 @@
 													failure:^(TMHTTPRequest *operation, NSError *error) {
 														self.loadRequest = nil;
 														[self.headerActivityIndicator stopAnimating];
-														
+
 														DLog(@"login F: %@", operation.responseString);
+
+														self.lastRefreshLabel.text = NSLocalizedString(@"Network Error :(", @"");
+
 													}];
 
 }
@@ -627,7 +660,7 @@
 				[UIView animateWithDuration:0.4
 								 animations:^{
 									 self.releaseToRefreshLabel.alpha = 1;
-									 
+
 								 }];
 				self.refreshOnRelease = YES;
 			}
@@ -659,7 +692,7 @@
 -(void)profileRefreshed:(NSNotification*)note
 {
 	[self.headerBackgroundView loadFromURL:[XTProfileController sharedInstance].profileUser.cover_image.url
-						  placeholderImage:nil
+						  placeholderImage:[UIImage imageNamed:@"brownlinen"]
 								 fromCache:[XTAppDelegate sharedInstance].userCoverArtCache];
 }
 
@@ -669,25 +702,12 @@
 
 #pragma mark - fetched results stuff
 
-
-
-
 - (void)controllerWillChangeContent:(NSFetchedResultsController *)controller
 {
     //Lets the tableview know we're potentially doing a bunch of updates.
 	DLog(@"controllerWillChangeContent");
 	//[self.tableView beginUpdates];
-
-	CGPoint oldOffset = self.tableView.contentOffset;
-	oldOffset.y -= self.headerView.bounds.size.height;
-	DLog(@"oldOffset = %@", NSStringFromCGPoint(oldOffset));
-
-	self.indexPathAtTopForUpdate = [self.tableView indexPathForRowAtPoint:oldOffset];
-
-	if(!self.indexPathAtTopForUpdate)
-		self.indexPathAtTopForUpdate = [NSIndexPath indexPathForRow:0 inSection:0];
-
-	DLog(@"path = %@", self.indexPathAtTopForUpdate);
+	self.lastRefreshLabel.text = NSLocalizedString(@"Processing Changes....", @"");
 }
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller
@@ -697,6 +717,11 @@
     //[self.tableView endUpdates];
 
 	[self.tableView reloadData];
+
+	self.lastRefreshLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Last Refresh: %@", @""),
+								  [NSDateFormatter localizedStringFromDate:[NSDate date]
+																 dateStyle:NSDateFormatterShortStyle
+																 timeStyle:NSDateFormatterShortStyle]];
 }
 
 - (void)controller:(NSFetchedResultsController *)controller
@@ -709,14 +734,6 @@
     switch(type)
     {
         case NSFetchedResultsChangeInsert:
-			if ([newIndexPath compare:self.indexPathAtTopForUpdate] == NSOrderedDescending ) {
-				// this is BELOW!
-				DLog(@"Below: %@", newIndexPath);
-			}
-			else
-			{
-				DLog(@"Above: %@", newIndexPath);
-			}
             //[tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:newIndexPath]
             //                 withRowAnimation:UITableViewRowAnimationNone];
             break;
@@ -755,5 +772,98 @@
             break;
     }
 }
+
+#pragma mark - Post adding!
+
+-(IBAction)addThought:(id)sender
+{
+	XTNewPostViewController * npvc = [[XTNewPostViewController alloc] init];
+
+	[self presentViewController:[[UINavigationController alloc] initWithRootViewController:npvc]
+					   animated:YES
+					 completion:nil];
+
+	[self.navigation collapse];
+}
+
+-(IBAction)addPhoto:(id)sender
+{
+	[self.navigation collapse];
+
+
+	NACaptureViewController * cvc = [[NACaptureViewController alloc] init];
+
+	cvc.capturedelegate = self;
+
+	cvc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+
+	[self presentViewController:[[UINavigationController alloc] initWithRootViewController:cvc]
+					   animated:YES
+					 completion:^{
+					 }];
+};
+
+-(void)captureViewControllerDidCancel:(NACaptureViewController *)captureView
+{
+    [self dismissViewControllerAnimated:YES
+							 completion:^{
+							 }];
+}
+
+-(void)captureViewController:(NACaptureViewController *)captureView didCaptureImage:(UIImage *)image
+{
+	//NOW that we have the video thumbnail
+	// make the attachment dictionaries and push the final step controller on the stack!
+
+	XTNewPostViewController * npvc = [[XTNewPostViewController alloc] init];
+
+	npvc.imageAttachment = image;
+
+	UINavigationController * navcon = (UINavigationController *)self.presentedViewController;
+
+	[navcon pushViewController:npvc
+					  animated:YES];
+
+}
+
+#pragma mark - expandable navigation delegate
+
+-(NSArray*)itemsForExpandableNavigation:(ExpandableNavigation*)nav
+{
+    NSMutableArray * array = [NSMutableArray arrayWithCapacity:5];
+
+
+	UIButton * thoughtbutton = [UIButton buttonWithType:UIButtonTypeCustom];
+	thoughtbutton.frame = CGRectMake(0, 0, 48, 48);
+	[thoughtbutton setImage:[UIImage imageNamed:@"addthought"]
+				   forState:UIControlStateNormal];
+
+	[thoughtbutton addTarget:self action:@selector(addThought:) forControlEvents:UIControlEventTouchUpInside];
+
+	[self.view insertSubview:thoughtbutton belowSubview:self.addPostButton];
+    [array addObject:thoughtbutton];
+
+
+	UIButton * photobutton = [UIButton buttonWithType:UIButtonTypeCustom];
+	photobutton.frame = CGRectMake(0, 0, 48, 48);
+	[photobutton setImage:[UIImage imageNamed:@"addcamera"]
+				 forState:UIControlStateNormal];
+	
+	[photobutton addTarget:self action:@selector(addPhoto:) forControlEvents:UIControlEventTouchUpInside];
+	
+	[self.view insertSubview:photobutton belowSubview:self.addPostButton];
+    [array addObject:photobutton];
+	
+    return array;
+}
+
+-(void)expandableNavigationDidCollapse:(ExpandableNavigation*)nav
+{
+	for (UIButton * button in nav.menuItems) {
+		[button removeFromSuperview];
+	}
+}
+
+
 
 @end

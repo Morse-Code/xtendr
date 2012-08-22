@@ -66,5 +66,54 @@
 	return mentions;
 }
 
+-(NSArray*)hashtags
+{
+	NSDictionary * entities = self.entities_dict;
+	NSMutableArray *hashtags = [NSMutableArray arrayWithCapacity:4];
+
+	for (NSDictionary * mentionDict in [entities objectForKey:@"hashtags"]) {
+		XTHashTag * hashtag = [[XTHashTag alloc] initWithAttributes:mentionDict];
+		[hashtags addObject:hashtag];
+	}
+
+	return hashtags;
+}
+
++(NSUInteger)topPostID
+{
+	NSUInteger returnval = -1;
+	
+	NSManagedObjectContext * context = [[NSManagedObjectContext alloc] init];
+	[context setPersistentStoreCoordinator:[XTAppDelegate sharedInstance].persistentStoreCoordinator];
+
+	// Create and configure a fetch request.
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Post"
+                                              inManagedObjectContext:[XTAppDelegate sharedInstance].managedObjectContext];
+
+    [fetchRequest setEntity:entity];
+
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"intid" ascending:NO];
+    NSArray *sortDescriptors = [[NSArray alloc] initWithObjects:sortDescriptor, nil];
+    [fetchRequest setSortDescriptors:sortDescriptors];
+
+	[fetchRequest setFetchLimit:1];
+	[fetchRequest setFetchBatchSize:1];
+
+
+	NSError * error;
+	NSArray * result = [context executeFetchRequest:fetchRequest error:&error];
+	if(result)
+	{
+		Post * post = [result lastObject];
+		returnval = [post.intid unsignedIntegerValue];
+	}
+
+	context = nil;
+
+	return returnval;
+}
+
 
 @end

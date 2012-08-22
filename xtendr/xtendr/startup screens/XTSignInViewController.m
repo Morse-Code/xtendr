@@ -54,7 +54,7 @@
 
     NSString *redirectURI		= @"xtendr://authcomplete";
     NSString *scopes			= @"stream write_post follow messages";
-    NSString *authURLstring = [NSString stringWithFormat:@"https://alpha.app.net/oauth/authenticate?client_id=%@&response_type=token&redirect_uri=%@&scope=%@", kANAPIClientID, redirectURI, scopes];
+    NSString *authURLstring = [NSString stringWithFormat:@"https://alpha.app.net/oauth/authenticate?adnview=appstore&client_id=%@&response_type=token&redirect_uri=%@&scope=%@", kANAPIClientID, redirectURI, scopes];
     NSURL *authURL = [NSURL URLWithString:[authURLstring stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 
 

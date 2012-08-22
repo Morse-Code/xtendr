@@ -149,7 +149,11 @@ typedef enum {
           success:(void (^)(TMHTTPRequest *operation, id responseObject))success
           failure:(void (^)(TMHTTPRequest *operation, NSError *error))failure;
 
+- (TMHTTPRequest *)HTTPRequestOperationWithRequest:(NSURLRequest *)urlRequest
+										   success:(void (^)(TMHTTPRequest *operation, id responseObject))success
+										   failure:(void (^)(TMHTTPRequest *operation, NSError *error))failure;
 
+- (void)enqueueHTTPRequestOperation:(TMHTTPRequest *)request;
 - (void)cancelAllHTTPOperationsWithMethod:(NSString *)method path:(NSString *)path;
 
 @end

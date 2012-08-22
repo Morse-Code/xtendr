@@ -2,7 +2,7 @@
 //  User.m
 //  xtendr
 //
-//  Created by Tony Million on 20/08/2012.
+//  Created by Tony Million on 21/08/2012.
 //  Copyright (c) 2012 Tony Million. All rights reserved.
 //
 
@@ -17,8 +17,8 @@
 @dynamic created_at;
 @dynamic desc_html;
 @dynamic desc_text;
-@dynamic followed_by;
-@dynamic follows;
+@dynamic followers;
+@dynamic following;
 @dynamic follows_you;
 @dynamic id;
 @dynamic intid;

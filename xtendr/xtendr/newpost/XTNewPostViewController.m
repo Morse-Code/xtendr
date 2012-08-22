@@ -14,6 +14,8 @@
 
 #import "XTProfileController.h"
 
+#import "TMImgurUploader.h"
+
 @interface XTNewPostViewController () <UITextViewDelegate>
 
 @property(strong) XTNewPostCell			*theCell;
@@ -60,14 +62,18 @@
 
     self.theCell.textView.delegate = self;
 
+
+	if(self.imageAttachment)
+		self.theCell.imageAttachmentView.image = self.imageAttachment;
+
 	self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
                                                                                           target:self
                                                                                           action:@selector(cancel:)];
 
 	// add picture button!
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave
-                                                                                           target:self
-                                                                                           action:@selector(save:)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Post", @"")
+																			  style:UIBarButtonItemStyleDone                                                                                            target:self
+																			 action:@selector(save:)];
 
 	self.navigationItem.rightBarButtonItem.enabled = NO;
 
@@ -80,7 +86,7 @@
 		for (XTMention * mention in self.replyToPost.mentions) {
 			if([mention.id isEqualToString:[XTProfileController sharedInstance].profileUser.id])
 				continue;
-			
+
 			[startText appendFormat:@"@%@ ", mention.name];
 		}
 
@@ -105,6 +111,8 @@
 -(void)viewDidAppear:(BOOL)animated
 {
 	[super viewDidAppear:animated];
+
+	[self.navigationController setNavigationBarHidden:NO animated:YES];
 
 	[self.theCell.textView becomeFirstResponder];
 }
@@ -153,6 +161,11 @@
     [self.tableView beginUpdates];
     [self.tableView endUpdates];
     [UIView setAnimationsEnabled:animationsEnabled];
+
+	NSIndexPath* ipath = [NSIndexPath indexPathForRow:0 inSection:0];
+	[self.tableView scrollToRowAtIndexPath:ipath
+						  atScrollPosition:UITableViewScrollPositionBottom
+								  animated:YES];
 }
 
 - (void)textViewDidChange:(UITextView *)textView
@@ -167,6 +180,18 @@
     }
 
 	int charsleft = 256 - textView.text.length;
+
+	if(self.imageAttachment)
+		charsleft -= 30;
+
+	if(charsleft>0)
+	{
+		self.theCell.charsLeftLabel.textColor = [UIColor lightGrayColor];
+	}
+	else
+	{
+		self.theCell.charsLeftLabel.textColor = [UIColor redColor];
+	}
 
 	self.theCell.charsLeftLabel.text = [NSString stringWithFormat:@"%d", charsleft];
 
@@ -189,13 +214,11 @@
                                                   }];
 }
 
--(IBAction)save:(id)sender
+-(void)actuallyDoPostWithText:(NSString*)text andAnnotation:(NSDictionary*)annotation
 {
-	self.navigationItem.rightBarButtonItem.enabled = NO;
-
 	NSMutableDictionary * params = [NSMutableDictionary dictionaryWithCapacity:2];
 
-	[params setObject:self.theCell.textView.text
+	[params setObject:text
 			   forKey:@"text"];
 
 	if(self.replyToPost)
@@ -204,9 +227,33 @@
 				   forKey:@"reply_to"];
 	}
 
+	/*
+	if(annotation)
+	{
+		NSData * jsonData = [NSJSONSerialization dataWithJSONObject:[NSDictionary dictionaryWithObject:annotation forKey:@"annotation"]
+															options:0
+															  error:nil];
+
+		if(jsonData)
+		{
+			NSString * temp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+			if(temp)
+			{
+				DLog(@"temp = %@", temp);
+				[params setObject:[temp stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]
+						   forKey:@"annotations"];
+			}
+		}
+	}
+	 */
+
+
 	[[XTHTTPClient sharedClient] postPath:@"posts"
 							   parameters:params
 								  success:^(TMHTTPRequest *operation, id responseObject) {
+
+									  DLog(@"POST SUCCESS: %@", responseObject);
+
 									  [self.parentViewController dismissViewControllerAnimated:YES
 																					completion:^{
 
@@ -214,7 +261,114 @@
 								  }
 								  failure:^(TMHTTPRequest *operation, NSError *error) {
 									  DLog(@"ERROR: %@, %@", operation.responseString, error);
+									  self.navigationItem.rightBarButtonItem.enabled = YES;
+									  self.theCell.textView.userInteractionEnabled = NO;
 								  }];
+
+
+}
+
+-(IBAction)save:(id)sender
+{
+	self.navigationItem.rightBarButtonItem.enabled	= NO;
+	self.theCell.textView.userInteractionEnabled	= NO;
+
+	NSString *text = self.theCell.textView.text;
+
+
+
+
+	NSMutableDictionary *annotation = [NSMutableDictionary dictionaryWithCapacity:2];
+	
+
+	NSMutableDictionary *xtendrDict = [NSMutableDictionary dictionaryWithCapacity:2];
+
+	[annotation setObject:xtendrDict forKey:@"xtendr"];
+	//TODO: we can geotag here!
+
+	if(self.imageAttachment)
+	{
+		[xtendrDict setObject:@"photo" forKey:@"posttype"];
+		
+		[[TMImgurUploader sharedInstance] uploadImage:self.imageAttachment
+										finishedBlock:^(NSDictionary *result, NSError *error) {
+											DLog(@"reult = %@, error = %@", result, error);
+											if(result)
+											{
+												NSDictionary * upload = [result objectForKey:@"upload"];
+												
+												NSDictionary * image = [upload objectForKey:@"image"];
+												
+												NSDictionary * links = [upload objectForKey:@"links"];
+
+												NSString * original = [links objectForKey:@"original"];
+
+												NSString * blockString = [text copy];
+
+												if(blockString && blockString.length)
+												{
+													blockString = [text stringByAppendingString:@" "];
+												}
+
+												blockString = [text stringByAppendingFormat:@" %@", original];
+
+
+												NSMutableDictionary * photo = [NSMutableDictionary dictionaryWithCapacity:3];
+												[photo setObject:[image objectForKey:@"width"]
+														  forKey:@"width"];
+												[photo setObject:[image objectForKey:@"height"]
+														  forKey:@"height"];
+												[photo setObject:original
+														  forKey:@"url"];
+
+												[xtendrDict setObject:photo forKey:@"photo"];
+
+
+
+												[self actuallyDoPostWithText:blockString andAnnotation:annotation];
+											}
+										}];
+
+	}
+	else
+	{
+		[xtendrDict setObject:@"thought" forKey:@"posttype"];
+
+		[self actuallyDoPostWithText:text
+					   andAnnotation:annotation];
+
+	}
+
+
+
+/*
+ image attachment
+ upload =     {
+ image =         {
+ animated = false;
+ bandwidth = 0;
+ caption = "<null>";
+ datetime = "2012-08-21 09:09:46";
+ deletehash = rTAzJImcpixFXsv;
+ hash = Z8X6L;
+ height = 960;
+ name = "<null>";
+ size = 78040;
+ title = "<null>";
+ type = "image/jpeg";
+ views = 0;
+ width = 960;
+ };
+ links =         {
+ "delete_page" = "http://imgur.com/delete/rTAzJImcpixFXsv";
+ "imgur_page" = "http://imgur.com/Z8X6L";
+ "large_thumbnail" = "http://i.imgur.com/Z8X6Ll.jpg";
+ original = "http://i.imgur.com/Z8X6L.jpg";
+ "small_square" = "http://i.imgur.com/Z8X6Ls.jpg";
+ };
+ };
+ */
+
 }
 
 @end

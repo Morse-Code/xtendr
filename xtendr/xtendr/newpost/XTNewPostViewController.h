@@ -14,5 +14,7 @@
 
 @property(strong) NSString	*prepopulateText;
 
+@property(strong) UIImage	*imageAttachment;
+
 
 @end

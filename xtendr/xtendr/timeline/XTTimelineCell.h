@@ -10,13 +10,13 @@
 
 #import "Post.h"
 
-typedef void (^faceTapBlock)(Post *post);
-typedef void (^quickReplyBlock)(Post *post);
+//typedef void (^faceTapBlock)(Post *post);
 
+typedef void (^quickReplyBlock)(Post *post);
 
 @interface XTTimelineCell : UITableViewCell
 
-@property(nonatomic, copy) faceTapBlock		faceTapBlock;
+//@property(nonatomic, copy) faceTapBlock		faceTapBlock;
 @property(nonatomic, copy) quickReplyBlock	quickReplyBlock;
 @property(nonatomic, strong) Post			*post;
 

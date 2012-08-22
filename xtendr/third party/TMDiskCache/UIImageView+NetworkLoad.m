@@ -197,7 +197,6 @@ static char * const kURLFinalURLKey         = "kURLFinalURLKey";
         self.finalURL = nil;
     }
 
-
     ///////////////////////////////////////////////////
     //
     // before we download it see if we have it in the URL cache

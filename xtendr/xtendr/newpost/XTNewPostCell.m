@@ -38,6 +38,8 @@
 	image = [image resizableImageWithCapInsets:UIEdgeInsetsMake(23, 20, 20, 8)];
     self.textBackgroundImageView.image = image;
 
+	self.textView.keyboardType = UIKeyboardTypeTwitter;
+
 
 	CALayer * l = self.userPictureImageView.layer;
 

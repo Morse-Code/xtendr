@@ -18,4 +18,7 @@
 -(void)addUsersFromArray:(NSArray*)userDictArray;
 -(void)addUser:(NSDictionary*)userDict;
 
+-(void)addUsersFromArray:(NSArray*)userDictArray completion:(void (^)(void))completion;
+-(void)addUser:(NSDictionary*)userDict  completion:(void (^)(void))completion;
+
 @end

@@ -47,7 +47,7 @@
 								<string key="NSFrame">{{5, 5}, {40, 40}}</string>
 								<reference key="NSSuperview" ref="245375413"/>
 								<reference key="NSWindow"/>
-								<reference key="NSNextKeyView" ref="646370171"/>
+								<reference key="NSNextKeyView" ref="894039035"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<bool key="IBUIUserInteractionEnabled">NO</bool>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -136,7 +136,7 @@
 							</object>
 							<object class="IBUILabel" id="26278377">
 								<reference key="NSNextResponder" ref="245375413"/>
-								<int key="NSvFlags">292</int>
+								<int key="NSvFlags">268</int>
 								<string key="NSFrame">{{52, 176}, {159, 21}}</string>
 								<reference key="NSSuperview" ref="245375413"/>
 								<reference key="NSWindow"/>
@@ -168,6 +168,18 @@
 									<double key="NSSize">17</double>
 									<int key="NSfFlags">16</int>
 								</object>
+							</object>
+							<object class="IBUIImageView" id="894039035">
+								<reference key="NSNextResponder" ref="245375413"/>
+								<int key="NSvFlags">292</int>
+								<string key="NSFrame">{{5, 55}, {40, 40}}</string>
+								<reference key="NSSuperview" ref="245375413"/>
+								<reference key="NSWindow"/>
+								<reference key="NSNextKeyView" ref="646370171"/>
+								<string key="NSReuseIdentifierKey">_NS:9</string>
+								<int key="IBUIContentMode">1</int>
+								<bool key="IBUIUserInteractionEnabled">NO</bool>
+								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 							</object>
 						</array>
 						<string key="NSFrameSize">{320, 199}</string>
@@ -236,6 +248,14 @@
 					</object>
 					<int key="connectionID">12</int>
 				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">imageAttachmentView</string>
+						<reference key="source" ref="1039055922"/>
+						<reference key="destination" ref="894039035"/>
+					</object>
+					<int key="connectionID">14</int>
+				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
 				<array key="orderedObjects">
@@ -265,6 +285,7 @@
 							<reference ref="631930217"/>
 							<reference ref="740329364"/>
 							<reference ref="26278377"/>
+							<reference ref="894039035"/>
 						</array>
 						<reference key="parent" ref="0"/>
 					</object>
@@ -295,6 +316,11 @@
 						<reference key="object" ref="26278377"/>
 						<reference key="parent" ref="1039055922"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">13</int>
+						<reference key="object" ref="894039035"/>
+						<reference key="parent" ref="1039055922"/>
+					</object>
 				</array>
 			</object>
 			<dictionary class="NSMutableDictionary" key="flattenedProperties">
@@ -302,6 +328,7 @@
 				<string key="-2.CustomClassName">UIResponder</string>
 				<string key="-2.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="11.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="13.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="2.CustomClassName">XTNewPostCell</string>
 				<string key="2.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="3.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
@@ -313,7 +340,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">12</int>
+			<int key="maxID">14</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -322,6 +349,7 @@
 					<string key="superclassName">UITableViewCell</string>
 					<dictionary class="NSMutableDictionary" key="outlets">
 						<string key="charsLeftLabel">UILabel</string>
+						<string key="imageAttachmentView">UIImageView</string>
 						<string key="replyToLabel">UILabel</string>
 						<string key="textBackgroundImageView">UIImageView</string>
 						<string key="textView">UITextView</string>
@@ -331,6 +359,10 @@
 						<object class="IBToOneOutletInfo" key="charsLeftLabel">
 							<string key="name">charsLeftLabel</string>
 							<string key="candidateClassName">UILabel</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="imageAttachmentView">
+							<string key="name">imageAttachmentView</string>
+							<string key="candidateClassName">UIImageView</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="replyToLabel">
 							<string key="name">replyToLabel</string>

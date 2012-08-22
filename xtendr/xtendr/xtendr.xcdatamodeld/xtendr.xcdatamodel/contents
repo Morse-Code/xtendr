@@ -25,8 +25,8 @@
         <attribute name="created_at" optional="YES" attributeType="Date" indexed="YES" syncable="YES"/>
         <attribute name="desc_html" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="desc_text" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="followed_by" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
-        <attribute name="follows" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="followers" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="following" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="follows_you" optional="YES" attributeType="Boolean" indexed="YES" syncable="YES"/>
         <attribute name="id" attributeType="String" indexed="YES" syncable="YES"/>
         <attribute name="intid" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
@@ -40,6 +40,6 @@
     </entity>
     <elements>
         <element name="Post" positionX="0" positionY="0" width="128" height="300"/>
-        <element name="User" positionX="0" positionY="0" width="128" height="285"/>
+        <element name="User" positionX="0" positionY="0" width="128" height="300"/>
     </elements>
 </model>

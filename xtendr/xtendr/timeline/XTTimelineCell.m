@@ -25,6 +25,7 @@
 @property(weak) IBOutlet UIImageView			*userPhoto;
 @property(weak) IBOutlet UIImageView			*thoughtBubbleBackImageView;
 @property(weak) IBOutlet TTTAttributedLabel		*thoughtLabel;
+@property(weak) IBOutlet UILabel				*usernameLabel;
 @property(weak) IBOutlet UIButton				*quickReplyButton;
 @property(weak) IBOutlet UILabel				*timeAgoLabel;
 
@@ -66,9 +67,6 @@
 {
     NSMutableAttributedString * returnString = [[NSMutableAttributedString alloc] init];
 
-	[returnString appendAttributedString:[XTTimelineCell boldString:@"@"]];
-	[returnString appendAttributedString:[XTTimelineCell boldString:username]];
-	[returnString appendAttributedString:[XTTimelineCell normalString:@" "]];
 	[returnString appendAttributedString:[XTTimelineCell normalString:text]];
 
     return returnString;
@@ -106,21 +104,21 @@
 {
     [super layoutSubviews];
 
-	self.thoughtBubbleBackImageView.frame = CGRectMake(45, 5, 263, self.labelHeight+15);
+	self.thoughtBubbleBackImageView.frame = CGRectMake(45, 5, 263, self.labelHeight+30);
 	self.thoughtLabel.frame = CGRectMake(60,
-										 10,
+										 27,
 										 TEXT_LABEL_WIDTH,
 										 self.labelHeight);
 
-	self.quickReplyButton.frame = CGRectMake(286-20, self.labelHeight-25, 40, 40);
+	self.quickReplyButton.frame = CGRectMake(285-20, self.labelHeight-10, 40, 40);
 
 }
 
 +(CGFloat)cellHeightForPost:(Post*)post
 {
 	CGFloat height = [[XTTimelineCell attributedStringForPost:post.text
-												  andUsername:post.user.username] heightForWidth:TEXT_LABEL_WIDTH];
-	return MAX(10+height+3+16+10, 60);
+												  andUsername:post.user.username] heightForWidth:TEXT_LABEL_WIDTH]+2;
+	return MAX(25+height+20, 80);
 }
 
 -(void)setPost:(Post*)post
@@ -131,7 +129,24 @@
 															   andUsername:_post.user.username];
 	self.thoughtLabel.text = attrText;
 
-	self.labelHeight = [attrText heightForWidth:TEXT_LABEL_WIDTH];
+
+
+	for (XTMention * mention in _post.mentions) {
+		[self.thoughtLabel addLinkToURL:[NSURL URLWithString:[NSString stringWithFormat:@"xtendr://showuser/%@", mention.id]]
+							  withRange:mention.range];
+	}
+
+	for (XTHashTag * hashtag in _post.hashtags) {
+		[self.thoughtLabel addLinkToURL:[NSURL URLWithString:[NSString stringWithFormat:@"xtendr://showhashtag/%@", hashtag.name]]
+							  withRange:hashtag.range];
+	}
+
+
+
+	self.labelHeight = [attrText heightForWidth:TEXT_LABEL_WIDTH]+2;
+
+	//self.usernameLabel.text = [NSString stringWithFormat:@"@%@", _post.user.username];
+	self.usernameLabel.text = _post.user.username;
 
 	[self.userPhoto loadFromURL:_post.user.avatar.url
 			   placeholderImage:[UIImage imageNamed:@"unknown"]
@@ -172,10 +187,8 @@
 -(IBAction)userPhotoTapped:(id)sender
 {
 	DLog(@"USER PHOTO TAPPED!");
-	if(self.faceTapBlock)
-	{
-		self.faceTapBlock(_post);
-	}
+
+	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"xtendr://showuser/%@", _post.user.id]]];
 }
 
 -(IBAction)quickReplyTapped:(id)sender

@@ -3,6 +3,12 @@ xtendr
 
 the xtendr iOS client for app.net
 
-This is my client for app.net unlike other clients that use tabbars, and are generally ugly, this aims to use a left panel reveal thing, and be beautiful!
+xtendr is an amazingly beautiful slick app.net client for iOS, it features a fluid UI, that is completely unlike other clients with their "twitter" style app view.
 
-![App Preview](http://omnityke.com/xtendr/8_timeline.png)
+Text & photo posts with "realtime-instgram style effects", live searching of hashtags, users and posts on app.net.
+
+Graphically precise with loads of "neat touches" like a custom pull to refresh and Path-Style expanding new post button!
+
+![App Preview](http://xtendr.net/ss/xtendrssgh.png)
+![App Preview 2](http://xtendr.net/ss/xtendrssgh3.png)
+![App Preview 3](http://xtendr.net/ss/xtendrssgh2.png)

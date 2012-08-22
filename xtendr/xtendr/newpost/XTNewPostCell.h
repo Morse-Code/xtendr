@@ -15,5 +15,7 @@
 
 @property(weak) IBOutlet UILabel		*replyToLabel;
 
+@property(weak) IBOutlet UIImageView	*imageAttachmentView;
+
 
 @end

@@ -34,6 +34,8 @@
 
 -(void)switchToProfileView;
 
+-(void)switchToSearchController;
+
 -(void)switchToSettingsView;
 -(void)switchToFeedbackView;
 

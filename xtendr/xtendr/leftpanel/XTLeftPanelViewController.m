@@ -206,6 +206,7 @@
 		}
         if(indexPath.row == 4)
         {
+			[[XTAppDelegate sharedInstance] switchToSearchController];
 		}
 	}
 	else if(indexPath.section == 1)

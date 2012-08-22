@@ -21,6 +21,14 @@
 
 #import "XTNewPostViewController.h"
 
+#import "XTProfileController.h"
+
+#import "XTProfileBioCell.h"
+#import "XTProfileFollowCell.h"
+
+
+#import "XTFollowListViewController.h"
+
 @interface XTProfileViewController () <NSFetchedResultsControllerDelegate>
 
 @property(weak) IBOutlet UIView			*headerView;
@@ -28,6 +36,12 @@
 @property(weak) IBOutlet UIImageView	*userImageView;
 @property(weak) IBOutlet UILabel		*userNameLabel;
 @property(weak) IBOutlet UILabel		*userPostCountLabel;
+@property(weak) IBOutlet UILabel		*followersLabel;
+@property(weak) IBOutlet UILabel		*followingLabel;
+@property(weak) IBOutlet UILabel		*userBiogLabel;
+
+@property(weak) IBOutlet UIButton				*followUnfollowButton;
+@property(weak) IBOutlet UIButton				*muteUnmuteButton;
 
 @property(copy) NSString						*internalUserID;
 @property(strong) NSFetchedResultsController	*userfetchedResultsController;
@@ -41,31 +55,76 @@
 -(void)setupHeader
 {
 	DLog(@"set up header");
-	
+
 	User * tempUser;
 
 	if(self.userfetchedResultsController.fetchedObjects.count)
+	{
 		tempUser = [self.userfetchedResultsController.fetchedObjects lastObject];
 
-	self.userNameLabel.text = [NSString stringWithFormat:@"%@ (%@)", tempUser.username, tempUser.id];
+		self.userNameLabel.text = [NSString stringWithFormat:@"%@ (%@)", tempUser.username, tempUser.id];
 
-	self.userPostCountLabel.text = [NSString stringWithFormat:@"%@ posts", tempUser.postcount];
+		self.userPostCountLabel.text = [NSString stringWithFormat:@"%@ posts", tempUser.postcount];
 
-	XTImageObject * cover = tempUser.cover;
-	if(cover)
+		self.userBiogLabel.text = tempUser.desc_text;
+
+		XTImageObject * cover = tempUser.cover;
+		if(cover)
+		{
+			[self.headerBackgroundImageView loadFromURL:cover.url
+									   placeholderImage:[UIImage imageNamed:@"brownlinen"]
+											  fromCache:(TMDiskCache*)[XTAppDelegate sharedInstance].userCoverArtCache];
+		}
+
+		XTImageObject * avatar = tempUser.avatar;
+		if(avatar)
+		{
+			[self.userImageView loadFromURL:avatar.url
+						   placeholderImage:[UIImage imageNamed:@"unknown"]
+								  fromCache:(TMDiskCache*)[XTAppDelegate sharedInstance].userProfilePicCache];
+		}
+
+		if([tempUser.you_follow boolValue])
+		{
+			[self.followUnfollowButton setTitle:NSLocalizedString(@"Unfollow", @"")
+									   forState:UIControlStateNormal];
+		}
+		else
+		{
+			[self.followUnfollowButton setTitle:NSLocalizedString(@"Follow", @"")
+									   forState:UIControlStateNormal];
+		}
+
+		if([tempUser.you_muted boolValue])
+		{
+			[self.muteUnmuteButton setTitle:NSLocalizedString(@"Unmute", @"")
+								   forState:UIControlStateNormal];
+		}
+		else
+		{
+			[self.muteUnmuteButton setTitle:NSLocalizedString(@"mute", @"")
+								   forState:UIControlStateNormal];
+		}
+
+		if([[XTProfileController sharedInstance].profileUser.id isEqual:tempUser.id])
+		{
+			//THIS IS US!!!
+			self.followUnfollowButton.hidden = YES;
+		}
+		else
+		{
+			self.followUnfollowButton.hidden = NO;
+		}
+	}
+	else
 	{
-		[self.headerBackgroundImageView loadFromURL:cover.url
+		self.userNameLabel.text = NSLocalizedString(@"Getting details..", @"");
+		[self.headerBackgroundImageView loadFromURL:nil
 								   placeholderImage:[UIImage imageNamed:@"brownlinen"]
 										  fromCache:(TMDiskCache*)[XTAppDelegate sharedInstance].userCoverArtCache];
+
 	}
 
-	XTImageObject * avatar = tempUser.avatar;
-	if(avatar)
-	{
-		[self.userImageView loadFromURL:avatar.url
-					   placeholderImage:[UIImage imageNamed:@"brownlinen"]
-							  fromCache:(TMDiskCache*)[XTAppDelegate sharedInstance].userProfilePicCache];
-	}
 }
 
 -(id)initWithUserID:(NSString*)userid
@@ -92,6 +151,13 @@
                                                bundle:[NSBundle mainBundle]]
          forCellReuseIdentifier:@"timelineCell"];
 
+	[self.tableView registerNib:[UINib nibWithNibName:@"XTProfileBioCell"
+                                               bundle:[NSBundle mainBundle]]
+         forCellReuseIdentifier:@"bioCell"];
+
+	[self.tableView registerNib:[UINib nibWithNibName:@"XTProfileFollowCell"
+                                               bundle:[NSBundle mainBundle]]
+         forCellReuseIdentifier:@"followCell"];
 
 	[[NSBundle mainBundle] loadNibNamed:@"XTProfileHeader"
                                   owner:self
@@ -131,9 +197,9 @@
 
     // Create and initialize the fetchedResultsController.
     self.userfetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
-                                                                        managedObjectContext:[XTAppDelegate sharedInstance].managedObjectContext
-                                                                          sectionNameKeyPath:nil /* one section */
-                                                                                   cacheName:nil];
+																			managedObjectContext:[XTAppDelegate sharedInstance].managedObjectContext
+																			  sectionNameKeyPath:nil /* one section */
+																					   cacheName:nil];
 
     self.userfetchedResultsController.delegate = self;
 
@@ -203,41 +269,112 @@
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     // Return the number of sections.
-    return self.postsFetchedResultsController.sections.count;
+    return 1+self.postsFetchedResultsController.sections.count;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-	id <NSFetchedResultsSectionInfo> sectionInfo = [self.postsFetchedResultsController.sections objectAtIndex:section];
-	return [sectionInfo numberOfObjects];
+	if(section == 0)
+	{
+		return 3;
+	}
+	
+	if(section == 1)
+	{
+		id <NSFetchedResultsSectionInfo> sectionInfo = [self.postsFetchedResultsController.sections objectAtIndex:0];
+		return [sectionInfo numberOfObjects];
+	}
+
+	return 0;
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	Post * post = [self.postsFetchedResultsController objectAtIndexPath:indexPath];
-	return [XTTimelineCell cellHeightForPost:post];
+	if(indexPath.section == 0)
+	{
+		User * tempUser;
+		if(self.userfetchedResultsController.fetchedObjects.count)
+			tempUser = [self.userfetchedResultsController.fetchedObjects lastObject];
+
+		if(indexPath.row == 0)
+		{
+			//calculate
+			return [XTProfileBioCell heightForText:tempUser.desc_text];
+		}
+		else
+			return 48;
+	}
+
+	if(indexPath.section == 1)
+	{
+		Post * post = [self.postsFetchedResultsController objectAtIndexPath:[NSIndexPath indexPathForRow:indexPath.row inSection:0]];
+		return [XTTimelineCell cellHeightForPost:post];
+	}
+
+	return 60;
 }
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	Post * post = [self.postsFetchedResultsController objectAtIndexPath:indexPath];
-
-	XTTimelineCell *cell = [tableView dequeueReusableCellWithIdentifier:@"timelineCell"];
-
-	cell.post = post;
-
-	cell.quickReplyBlock = ^(Post * post)
+	if(indexPath.section == 0)
 	{
-		XTNewPostViewController * npvc = [[XTNewPostViewController alloc] init];
-		npvc.replyToPost = post;
+		User * tempUser;
+		if(self.userfetchedResultsController.fetchedObjects.count)
+			tempUser = [self.userfetchedResultsController.fetchedObjects lastObject];
 
-		[self presentViewController:[[UINavigationController alloc] initWithRootViewController:npvc]
-						   animated:YES
-						 completion:nil];
-	};
+		if(indexPath.row == 0)
+		{
+			XTProfileBioCell * bioCell = [tableView dequeueReusableCellWithIdentifier:@"bioCell"];
 
-	return cell;
+			if(tempUser)
+				bioCell.bioLabel.text = tempUser.desc_text;
+			else
+				bioCell.bioLabel.text = @"";
+
+			return bioCell;
+		}
+
+		if(indexPath.row == 1)
+		{
+			XTProfileFollowCell * followingCell = [tableView dequeueReusableCellWithIdentifier:@"followCell"];
+
+			[followingCell setFollowingCount:tempUser.following];
+
+			return followingCell;
+		}
+
+		if(indexPath.row == 2)
+		{
+			XTProfileFollowCell * followerCell = [tableView dequeueReusableCellWithIdentifier:@"followCell"];
+
+			[followerCell setFollowedCount:tempUser.followers];
+
+			return followerCell;
+		}
+
+	}
+
+	if(indexPath.section == 1)
+	{
+		Post * post = [self.postsFetchedResultsController objectAtIndexPath:[NSIndexPath indexPathForRow:indexPath.row inSection:0]];
+
+		XTTimelineCell *cell = [tableView dequeueReusableCellWithIdentifier:@"timelineCell"];
+
+		cell.post = post;
+
+		cell.quickReplyBlock = ^(Post * post)
+		{
+			XTNewPostViewController * npvc = [[XTNewPostViewController alloc] init];
+			npvc.replyToPost = post;
+
+			[self presentViewController:[[UINavigationController alloc] initWithRootViewController:npvc]
+							   animated:YES
+							 completion:nil];
+		};
+
+		return cell;
+	}
 }
 
 
@@ -245,6 +382,21 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+	if(indexPath.section == 0)
+	{
+		if(indexPath.row == 1)
+		{
+			// show following
+			XTFollowListViewController * flvc = [[XTFollowListViewController alloc] initWithUserID:self.internalUserID showFollowers:NO];
+			[self.navigationController pushViewController:flvc animated:YES];
+		}
+		if(indexPath.row == 2)
+		{
+			//show followers
+			XTFollowListViewController * flvc = [[XTFollowListViewController alloc] initWithUserID:self.internalUserID showFollowers:YES];
+			[self.navigationController pushViewController:flvc animated:YES];
+		}
+	}
 }
 
 #pragma mark - View Scrolling header thing
@@ -257,7 +409,7 @@
 
 		CGRect rect = self.headerView.frame;
 		rect.origin.y = MIN(0, scrollView.contentOffset.y);
-		rect.size.height = 200 + extra;
+		rect.size.height = 170 + extra;
 		self.headerView.frame = rect;
 	}
 }
@@ -321,7 +473,7 @@
 	}
 	else
 	{
-		
+
 	}
 }
 
@@ -335,6 +487,7 @@
 	else
 	{
 		[self setupHeader];
+		[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
 	}
 }
 
@@ -344,8 +497,14 @@
 	if(controller == self.userfetchedResultsController)
 	{
 		[self setupHeader];
+		[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
 		return;
 	}
+
+	// override the default to put the details in section 0
+	// I wish apple actually made this easy :(
+	indexPath		= [NSIndexPath indexPathForRow:indexPath.row inSection:1];
+	newIndexPath	= [NSIndexPath indexPathForRow:newIndexPath.row inSection:1];
 
 	//ok now we do the funky table stuff!
 	UITableView *tableView = self.tableView;
@@ -392,6 +551,55 @@
     }
 }
 
+-(IBAction)followUnfollow:(id)sender
+{
+	User * tempUser;
 
+	if(!self.userfetchedResultsController.fetchedObjects.count)
+		return;
+
+	tempUser = [self.userfetchedResultsController.fetchedObjects lastObject];
+
+	self.followUnfollowButton.enabled = NO;
+
+	if([tempUser.you_follow boolValue])
+	{
+		//DO DELETE FOLLOW
+		[[XTHTTPClient sharedClient] deletePath:[NSString stringWithFormat:@"users/%@/follow", self.internalUserID]
+									 parameters:nil
+										success:^(TMHTTPRequest *operation, id responseObject) {
+											DLog(@"UNFOLLOW SUCCESS: %@", responseObject);
+
+											if(responseObject && [responseObject isKindOfClass:[NSDictionary class]])
+											{
+												[[XTUserController sharedInstance] addUser:responseObject];
+											}
+
+											self.followUnfollowButton.enabled = YES;
+										}
+										failure:^(TMHTTPRequest *operation, NSError *error) {
+											self.followUnfollowButton.enabled = YES;
+										}];
+	}
+	else
+	{
+		//DO POST FOLLOW
+
+		[[XTHTTPClient sharedClient] postPath:[NSString stringWithFormat:@"users/%@/follow", self.internalUserID]
+								   parameters:nil
+									  success:^(TMHTTPRequest *operation, id responseObject) {
+										  DLog(@"FOLLOW SUCCESS: %@", responseObject);
+
+										  if(responseObject && [responseObject isKindOfClass:[NSDictionary class]])
+										  {
+											  [[XTUserController sharedInstance] addUser:responseObject];
+										  }
+										  self.followUnfollowButton.enabled = YES;
+									  }
+									  failure:^(TMHTTPRequest *operation, NSError *error) {										  
+										  self.followUnfollowButton.enabled = YES;
+									  }];
+	}
+}
 
 @end
