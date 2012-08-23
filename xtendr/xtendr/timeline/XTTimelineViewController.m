@@ -27,9 +27,11 @@
 
 #import "XTConversationViewController.h"
 
+#import "TimeScroller.h"
+
 #define POST_LIMIT	20
 
-@interface XTTimelineViewController () <ExpandableNavigationDelegate, UITableViewDataSource, UITableViewDelegate, NSFetchedResultsControllerDelegate, NACaptureDelegate>
+@interface XTTimelineViewController () <TimeScrollerDelegate, ExpandableNavigationDelegate, UITableViewDataSource, UITableViewDelegate, NSFetchedResultsControllerDelegate, NACaptureDelegate>
 
 @property(weak)	IBOutlet UIView					*headerView;
 @property(weak) IBOutlet UILabel				*releaseToRefreshLabel;
@@ -59,9 +61,31 @@
 
 @property(strong) ExpandableNavigation			*navigation;
 
+@property(strong) TimeScroller					*timeScroller;
+
 @end
 
 @implementation XTTimelineViewController
+
+//You should return your UITableView here
+- (UITableView *)tableViewForTimeScroller:(TimeScroller *)timeScroller
+{
+    return self.tableView;
+}
+
+//You should return an NSDate related to the UITableViewCell given. This will be
+//the date displayed when the TimeScroller is above that cell.
+- (NSDate *)dateForCell:(UITableViewCell *)cell
+{
+	if(!self.fetchedResultsController.fetchedObjects || self.fetchedResultsController.fetchedObjects.count == 0)
+		return nil;
+	
+    NSIndexPath *indexPath = [self.tableView indexPathForCell:cell];
+    Post *post = [self.fetchedResultsController objectAtIndexPath:indexPath];
+    NSDate *date = [post created_at];
+
+    return date;
+}
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -77,6 +101,9 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view.
+
+	self.timeScroller = [[TimeScroller alloc] initWithDelegate:self];
+
 
     self.view = [[UIView alloc] initWithFrame:[UIScreen mainScreen].applicationFrame];
     self.view.backgroundColor = [UIColor blackColor];
@@ -618,65 +645,6 @@
 	}
 }
 
-#pragma mark - View Scrolling header thing
-
--(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
-{
-	self.inDrag = YES;
-}
-
--(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
-{
-	self.inDrag = NO;
-	[UIView animateWithDuration:0.4
-					 animations:^{
-						 self.releaseToRefreshLabel.alpha = 0;
-
-					 }];
-
-	if(self.refreshOnRelease)
-	{
-		[self loadNewerPosts];
-	}
-
-	self.refreshOnRelease = NO;
-}
-
--(void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
-	if(scrollView.contentOffset.y < 0)
-	{
-		CGFloat extra = abs(scrollView.contentOffset.y);
-
-		CGRect rect = self.headerView.frame;
-		rect.origin.y = MIN(0, scrollView.contentOffset.y);
-		rect.size.height = 100 + extra;
-		self.headerView.frame = rect;
-
-		if(self.inDrag)
-		{
-			if(rect.size.height > 200)
-			{
-				[UIView animateWithDuration:0.4
-								 animations:^{
-									 self.releaseToRefreshLabel.alpha = 1;
-
-								 }];
-				self.refreshOnRelease = YES;
-			}
-			else
-			{
-				[UIView animateWithDuration:0.4
-								 animations:^{
-									 self.releaseToRefreshLabel.alpha = 0;
-
-								 }];
-				self.refreshOnRelease = NO;
-
-			}
-		}
-	}
-}
 
 -(IBAction)addPost:(id)sender
 {
@@ -864,6 +832,83 @@
 	}
 }
 
+#pragma mark - View Scrolling header thing
+
+-(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    [_timeScroller scrollViewWillBeginDragging];
+
+	self.inDrag = YES;
+}
+
+-(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+	self.inDrag = NO;
+	[UIView animateWithDuration:0.4
+					 animations:^{
+						 self.releaseToRefreshLabel.alpha = 0;
+
+					 }];
+
+	if(self.refreshOnRelease)
+	{
+		[self loadNewerPosts];
+	}
+
+    if (!decelerate) {
+
+        [_timeScroller scrollViewDidEndDecelerating];
+
+    }
+
+	self.refreshOnRelease = NO;
+
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+
+    [_timeScroller scrollViewDidEndDecelerating];
+
+}
+
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+	if(scrollView.contentOffset.y < 0)
+	{
+		CGFloat extra = abs(scrollView.contentOffset.y);
+
+		CGRect rect = self.headerView.frame;
+		rect.origin.y = MIN(0, scrollView.contentOffset.y);
+		rect.size.height = 100 + extra;
+		self.headerView.frame = rect;
+
+		if(self.inDrag)
+		{
+			if(rect.size.height > 200)
+			{
+				[UIView animateWithDuration:0.4
+								 animations:^{
+									 self.releaseToRefreshLabel.alpha = 1;
+
+								 }];
+				self.refreshOnRelease = YES;
+			}
+			else
+			{
+				[UIView animateWithDuration:0.4
+								 animations:^{
+									 self.releaseToRefreshLabel.alpha = 0;
+
+								 }];
+				self.refreshOnRelease = NO;
+
+			}
+		}
+	}
+
+    [_timeScroller scrollViewDidScroll];
+    
+}
 
 
 @end

@@ -9,6 +9,13 @@
 /* Begin PBXBuildFile section */
 		5D01FF7B15DFE9F60048F364 /* NSAttributedString+heightforrect.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D01FF7A15DFE9F60048F364 /* NSAttributedString+heightforrect.m */; };
 		5D01FF8A15DFEA5D0048F364 /* TTTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D01FF8915DFEA5D0048F364 /* TTTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		5D590FA415E5670500FD8120 /* timescroll_hourhand.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D590F9C15E5670500FD8120 /* timescroll_hourhand.png */; };
+		5D590FA515E5670500FD8120 /* timescroll_hourhand@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D590F9D15E5670500FD8120 /* timescroll_hourhand@2x.png */; };
+		5D590FA615E5670500FD8120 /* timescroll_minutehand.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D590F9E15E5670500FD8120 /* timescroll_minutehand.png */; };
+		5D590FA715E5670500FD8120 /* timescroll_minutehand@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D590F9F15E5670500FD8120 /* timescroll_minutehand@2x.png */; };
+		5D590FA815E5670500FD8120 /* timescroll_pointer.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D590FA015E5670500FD8120 /* timescroll_pointer.png */; };
+		5D590FA915E5670500FD8120 /* timescroll_pointer@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D590FA115E5670500FD8120 /* timescroll_pointer@2x.png */; };
+		5D590FAA15E5670500FD8120 /* TimeScroller.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D590FA315E5670500FD8120 /* TimeScroller.m */; };
 		5D8A000215DFE57B004241D5 /* XTTimelineCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D8A000115DFE57B004241D5 /* XTTimelineCell.m */; };
 		5D8AFF9015DFBA39004241D5 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D8AFF8F15DFBA39004241D5 /* UIKit.framework */; };
 		5D8AFF9215DFBA39004241D5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D8AFF9115DFBA39004241D5 /* Foundation.framework */; };
@@ -168,6 +175,14 @@
 		5D01FF7A15DFE9F60048F364 /* NSAttributedString+heightforrect.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSAttributedString+heightforrect.m"; sourceTree = "<group>"; };
 		5D01FF8715DFEA420048F364 /* TTTAttributedLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTTAttributedLabel.h; sourceTree = "<group>"; };
 		5D01FF8915DFEA5D0048F364 /* TTTAttributedLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TTTAttributedLabel.m; sourceTree = "<group>"; };
+		5D590F9C15E5670500FD8120 /* timescroll_hourhand.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = timescroll_hourhand.png; sourceTree = "<group>"; };
+		5D590F9D15E5670500FD8120 /* timescroll_hourhand@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "timescroll_hourhand@2x.png"; sourceTree = "<group>"; };
+		5D590F9E15E5670500FD8120 /* timescroll_minutehand.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = timescroll_minutehand.png; sourceTree = "<group>"; };
+		5D590F9F15E5670500FD8120 /* timescroll_minutehand@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "timescroll_minutehand@2x.png"; sourceTree = "<group>"; };
+		5D590FA015E5670500FD8120 /* timescroll_pointer.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = timescroll_pointer.png; sourceTree = "<group>"; };
+		5D590FA115E5670500FD8120 /* timescroll_pointer@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "timescroll_pointer@2x.png"; sourceTree = "<group>"; };
+		5D590FA215E5670500FD8120 /* TimeScroller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeScroller.h; sourceTree = "<group>"; };
+		5D590FA315E5670500FD8120 /* TimeScroller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimeScroller.m; sourceTree = "<group>"; };
 		5D8A000015DFE57B004241D5 /* XTTimelineCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XTTimelineCell.h; sourceTree = "<group>"; };
 		5D8A000115DFE57B004241D5 /* XTTimelineCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XTTimelineCell.m; sourceTree = "<group>"; };
 		5D8AFF8B15DFBA39004241D5 /* xtendr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xtendr.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -404,6 +419,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5D590F9B15E5670500FD8120 /* TimeScroller */ = {
+			isa = PBXGroup;
+			children = (
+				5D590F9C15E5670500FD8120 /* timescroll_hourhand.png */,
+				5D590F9D15E5670500FD8120 /* timescroll_hourhand@2x.png */,
+				5D590F9E15E5670500FD8120 /* timescroll_minutehand.png */,
+				5D590F9F15E5670500FD8120 /* timescroll_minutehand@2x.png */,
+				5D590FA015E5670500FD8120 /* timescroll_pointer.png */,
+				5D590FA115E5670500FD8120 /* timescroll_pointer@2x.png */,
+				5D590FA215E5670500FD8120 /* TimeScroller.h */,
+				5D590FA315E5670500FD8120 /* TimeScroller.m */,
+			);
+			path = TimeScroller;
+			sourceTree = "<group>";
+		};
 		5D8AFF8015DFBA39004241D5 = {
 			isa = PBXGroup;
 			children = (
@@ -494,19 +524,20 @@
 		5D8AFFAB15DFBABE004241D5 /* third party */ = {
 			isa = PBXGroup;
 			children = (
-				5DF0AFB415E39D0E0093C081 /* TMMaskView.h */,
-				5DF0AFB515E39D0E0093C081 /* TMMaskView.m */,
 				5DF0AFB115E39CDC0093C081 /* ExpandableNavigation.h */,
 				5DF0AFB215E39CDC0093C081 /* ExpandableNavigation.m */,
 				5DF0AF3F15E39BE40093C081 /* newcamera */,
-				5D8E636815E00DA300DC11FF /* TMHTTPClient */,
-				5D01FF8915DFEA5D0048F364 /* TTTAttributedLabel.m */,
-				5D01FF8715DFEA420048F364 /* TTTAttributedLabel.h */,
-				5D8AFFC015DFD21A004241D5 /* TMDiskCache */,
 				5D8AFFBC15DFD151004241D5 /* testflight */,
-				5D8AFFAC15DFBAD6004241D5 /* ViewDeck */,
+				5D590F9B15E5670500FD8120 /* TimeScroller */,
+				5D8AFFC015DFD21A004241D5 /* TMDiskCache */,
+				5D8E636815E00DA300DC11FF /* TMHTTPClient */,
 				5DF0AF3C15E381E60093C081 /* TMImgurUploader.h */,
 				5DF0AF3D15E381E60093C081 /* TMImgurUploader.m */,
+				5DF0AFB415E39D0E0093C081 /* TMMaskView.h */,
+				5DF0AFB515E39D0E0093C081 /* TMMaskView.m */,
+				5D01FF8715DFEA420048F364 /* TTTAttributedLabel.h */,
+				5D01FF8915DFEA5D0048F364 /* TTTAttributedLabel.m */,
+				5D8AFFAC15DFBAD6004241D5 /* ViewDeck */,
 			);
 			path = "third party";
 			sourceTree = "<group>";
@@ -959,6 +990,12 @@
 				5DA766CB15E4E78E00CF69FA /* profilebadge.png in Resources */,
 				5DA766CC15E4E78E00CF69FA /* profilebadge@2x.png in Resources */,
 				5DA766DA15E53E8300CF69FA /* XTConversationHeader.xib in Resources */,
+				5D590FA415E5670500FD8120 /* timescroll_hourhand.png in Resources */,
+				5D590FA515E5670500FD8120 /* timescroll_hourhand@2x.png in Resources */,
+				5D590FA615E5670500FD8120 /* timescroll_minutehand.png in Resources */,
+				5D590FA715E5670500FD8120 /* timescroll_minutehand@2x.png in Resources */,
+				5D590FA815E5670500FD8120 /* timescroll_pointer.png in Resources */,
+				5D590FA915E5670500FD8120 /* timescroll_pointer@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1027,6 +1064,7 @@
 				5DA766C815E4E33C00CF69FA /* XTProfileFollowCell.m in Sources */,
 				5DA766D815E51D5600CF69FA /* XTConversationViewController.m in Sources */,
 				5DA766DE15E542B500CF69FA /* XTFollowListViewController.m in Sources */,
+				5D590FAA15E5670500FD8120 /* TimeScroller.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

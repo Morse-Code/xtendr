@@ -67,19 +67,39 @@
 					inContext:context
 			createIfNecessary:YES];
 
-		//TODO: can a user change their user name?
-		if([userDict objectForKey:@"username"])
-			user.username	= [userDict objectForKey:@"username"];
-
-		if([userDict objectForKey:@"name"])
-			user.name		= [userDict objectForKey:@"name"];
-
 		if(!user.created_at)
 		{
 			user.created_at = [self.ISO8601Formatter  dateFromString:[userDict objectForKey:@"created_at"]];
 		}
 	}
 
+	//TODO: can a user change their user name?
+	if(user.username)
+	{
+		if(![user.username isEqual:[userDict objectForKey:@"username"]])
+			user.username	= [userDict objectForKey:@"username"];
+	}
+	else
+	{
+		if([userDict objectForKey:@"username"])
+			user.username	= [userDict objectForKey:@"username"];
+	}
+
+
+	
+	if(user.name)
+	{
+		if(![user.name isEqual:[userDict objectForKey:@"name"]])
+			user.name	= [userDict objectForKey:@"name"];
+	}
+	else
+	{
+		if([userDict objectForKey:@"name"])
+			user.name	= [userDict objectForKey:@"name"];
+	}
+
+
+	
 	NSDictionary * description = [userDict objectForKey:@"description"];
 	if(description)
 	{
@@ -170,7 +190,8 @@
 		if(user.postcount)
 		{
 			if(![user.postcount isEqual:[counts objectForKey:@"posts"]])
-				user.postcount		= [counts objectForKey:@"posts"];
+				if([[counts objectForKey:@"posts"] isKindOfClass:[NSNumber class]])
+					user.postcount		= [counts objectForKey:@"posts"];
 		}
 		else
 		{

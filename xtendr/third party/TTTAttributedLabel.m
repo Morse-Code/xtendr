@@ -192,8 +192,8 @@ static inline NSAttributedString * NSAttributedStringByScalingFontSize(NSAttribu
     self.links = [NSArray array];
     
     NSMutableDictionary *mutableLinkAttributes = [NSMutableDictionary dictionary];
-    [mutableLinkAttributes setValue:(id)[[UIColor blueColor] CGColor] forKey:(NSString*)kCTForegroundColorAttributeName];
-    [mutableLinkAttributes setValue:[NSNumber numberWithBool:YES] forKey:(NSString *)kCTUnderlineStyleAttributeName];
+    [mutableLinkAttributes setValue:(id)[[UIColor colorWithRed:0.2 green:0.5 blue:0.9 alpha:1.0] CGColor] forKey:(NSString*)kCTForegroundColorAttributeName];
+    [mutableLinkAttributes setValue:[NSNumber numberWithBool:NO] forKey:(NSString *)kCTUnderlineStyleAttributeName];
     self.linkAttributes = [NSDictionary dictionaryWithDictionary:mutableLinkAttributes];
     
     self.textInsets = UIEdgeInsetsZero;

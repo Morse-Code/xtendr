@@ -12,6 +12,12 @@
 // use multipart form
 // imgur key: dda44bbcc35afffc3419cb5ca961ca94
 
+/*
+ eddy@alpha @prasadrl @ralf @tonymillion — 
+ Would be helpful if I included a link to the API. 
+ D'oh. http://api.thequeue.org/v1/ "Clear Read is a service for extracting 
+ article text and metadata from a URL."*/
+
 #import "XTAppDelegate.h"
 
 #import "XTProfileController.h"

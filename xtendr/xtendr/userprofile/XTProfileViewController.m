@@ -29,16 +29,21 @@
 
 #import "XTFollowListViewController.h"
 
+#import "XTConversationViewController.h"
+
+#import "TimeScroller.h"
+
+
 @interface XTProfileViewController () <NSFetchedResultsControllerDelegate>
 
-@property(weak) IBOutlet UIView			*headerView;
-@property(weak) IBOutlet UIImageView	*headerBackgroundImageView;
-@property(weak) IBOutlet UIImageView	*userImageView;
-@property(weak) IBOutlet UILabel		*userNameLabel;
-@property(weak) IBOutlet UILabel		*userPostCountLabel;
-@property(weak) IBOutlet UILabel		*followersLabel;
-@property(weak) IBOutlet UILabel		*followingLabel;
-@property(weak) IBOutlet UILabel		*userBiogLabel;
+@property(weak) IBOutlet UIView					*headerView;
+@property(weak) IBOutlet UIImageView			*headerBackgroundImageView;
+@property(weak) IBOutlet UIImageView			*userImageView;
+@property(weak) IBOutlet UILabel				*userNameLabel;
+@property(weak) IBOutlet UILabel				*userPostCountLabel;
+@property(weak) IBOutlet UILabel				*followersLabel;
+@property(weak) IBOutlet UILabel				*followingLabel;
+@property(weak) IBOutlet UILabel				*userBiogLabel;
 
 @property(weak) IBOutlet UIButton				*followUnfollowButton;
 @property(weak) IBOutlet UIButton				*muteUnmuteButton;
@@ -47,6 +52,8 @@
 @property(strong) NSFetchedResultsController	*userfetchedResultsController;
 
 @property(strong) NSFetchedResultsController	*postsFetchedResultsController;
+
+@property(strong) TimeScroller					*timeScroller;
 
 @end
 
@@ -143,6 +150,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+
+	self.timeScroller = [[TimeScroller alloc] initWithDelegate:self];
 
 	self.tableView.backgroundColor	= [UIColor colorWithPatternImage:[UIImage imageNamed:@"timelineback"]];
 	self.tableView.separatorStyle	= UITableViewCellSeparatorStyleNone;
@@ -300,7 +309,7 @@
 		if(indexPath.row == 0)
 		{
 			//calculate
-			return [XTProfileBioCell heightForText:tempUser.desc_text];
+			return MAX([XTProfileBioCell heightForText:tempUser.desc_text], 48);
 		}
 		else
 			return 48;
@@ -397,20 +406,14 @@
 			[self.navigationController pushViewController:flvc animated:YES];
 		}
 	}
-}
-
-#pragma mark - View Scrolling header thing
-
--(void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
-	if(scrollView.contentOffset.y < 0)
+	
+	if(indexPath.section == 1)
 	{
-		CGFloat extra = abs(scrollView.contentOffset.y);
+		Post * post = [self.postsFetchedResultsController objectAtIndexPath:[NSIndexPath indexPathForRow:indexPath.row inSection:0]];
+		XTConversationViewController * cvc = [[XTConversationViewController alloc] initWithPost:post];
 
-		CGRect rect = self.headerView.frame;
-		rect.origin.y = MIN(0, scrollView.contentOffset.y);
-		rect.size.height = 170 + extra;
-		self.headerView.frame = rect;
+		[self.navigationController pushViewController:cvc animated:YES];
+
 	}
 }
 
@@ -600,6 +603,69 @@
 										  self.followUnfollowButton.enabled = YES;
 									  }];
 	}
+}
+
+//You should return your UITableView here
+- (UITableView *)tableViewForTimeScroller:(TimeScroller *)timeScroller
+{
+    return self.tableView;
+}
+
+//You should return an NSDate related to the UITableViewCell given. This will be
+//the date displayed when the TimeScroller is above that cell.
+- (NSDate *)dateForCell:(UITableViewCell *)cell
+{
+	if(!self.postsFetchedResultsController.fetchedObjects || self.postsFetchedResultsController.fetchedObjects.count == 0)
+		return nil;
+
+    NSIndexPath *indexPath = [self.tableView indexPathForCell:cell];
+	DLog(@"indexPath = %@", indexPath);
+	if(indexPath.section == 1)
+	{
+		Post *post = [self.postsFetchedResultsController objectAtIndexPath:[NSIndexPath indexPathForRow:indexPath.row inSection:0]];
+		NSDate *date = [post created_at];
+
+		return date;
+	}
+
+	return nil;
+}
+
+#pragma mark - View Scrolling header thing
+
+-(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    [_timeScroller scrollViewWillBeginDragging];
+}
+
+-(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    if (!decelerate) {
+
+        [_timeScroller scrollViewDidEndDecelerating];
+
+    }
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+
+    [_timeScroller scrollViewDidEndDecelerating];
+
+}
+
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+	if(scrollView.contentOffset.y < 0)
+	{
+		CGFloat extra = abs(scrollView.contentOffset.y);
+
+		CGRect rect = self.headerView.frame;
+		rect.origin.y = MIN(0, scrollView.contentOffset.y);
+		rect.size.height = 170 + extra;
+		self.headerView.frame = rect;
+	}
+
+    [_timeScroller scrollViewDidScroll];
 }
 
 @end

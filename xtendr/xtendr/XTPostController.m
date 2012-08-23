@@ -135,8 +135,11 @@
 		if(!post.source_link || !post.source_name)
 		{
 			NSDictionary * source = [postDict objectForKey:@"source"];
-			post.source_link	= [source objectForKey:@"link"];
-			post.source_name	= [source objectForKey:@"name"];
+			if([[source objectForKey:@"link"] isKindOfClass:[NSString class]])
+				post.source_link	= [source objectForKey:@"link"];
+			
+			if([[source objectForKey:@"name"] isKindOfClass:[NSString class]])
+				post.source_name	= [source objectForKey:@"name"];
 		}
 
 		if(!post.reply_to)

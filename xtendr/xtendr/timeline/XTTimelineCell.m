@@ -18,7 +18,7 @@
 #import "XTAppDelegate.h"
 
 
-#define TEXT_LABEL_WIDTH	225.0
+#define TEXT_LABEL_WIDTH	235.0
 
 @interface XTTimelineCell () <TTTAttributedLabelDelegate>
 
