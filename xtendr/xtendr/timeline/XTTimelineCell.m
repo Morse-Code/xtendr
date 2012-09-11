@@ -67,6 +67,9 @@
 {
     NSMutableAttributedString * returnString = [[NSMutableAttributedString alloc] init];
 
+	if(text == nil)
+		text = @"<redacted>";
+
 	[returnString appendAttributedString:[XTTimelineCell normalString:text]];
 
     return returnString;
@@ -158,7 +161,7 @@
     if(numseconds < 60*60) // 1 hour
     {
         int min = (int)numseconds/60;
-        if(min <= 3)
+        if(numseconds< 60)
         {
             self.timeAgoLabel.text             = NSLocalizedString(@"now", @"");
         }

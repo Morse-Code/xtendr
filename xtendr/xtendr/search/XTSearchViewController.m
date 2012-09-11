@@ -21,6 +21,11 @@
 #define kResultsTypePosts		(0)
 #define kResultsTypeUsers		(1)
 
+// Scopebar constants
+#define kSearchByHashTag		0
+#define kSearchByUser				1
+#define kSearchByPost				2
+
 @interface XTSearchViewController () <UISearchBarDelegate>
 
 @property(strong) UISearchBar					*searchBar;
@@ -48,7 +53,7 @@
 {
     [super viewDidLoad];
 
-	self.tableView.backgroundColor	= [UIColor colorWithPatternImage:[UIImage imageNamed:@"timelineback"]];
+	self.tableView.backgroundColor	= [UIColor colorWithPatternImage:[UIImage imageNamed:@"furley_bg"]];
 	self.tableView.separatorStyle	= UITableViewCellSeparatorStyleNone;
 
 	[self.tableView registerNib:[UINib nibWithNibName:@"XTTimelineCell"
@@ -172,10 +177,11 @@
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
 {
 	DLog(@"should search %d", searchBar.selectedScopeButtonIndex);
+	[searchBar resignFirstResponder];
 
-	if(searchBar.selectedScopeButtonIndex == 0)
+	if(searchBar.selectedScopeButtonIndex == kSearchByHashTag)
 	{
-		https://alpha-api.app.net/stream/0/posts/tag/[hashtag]
+		//https://alpha-api.app.net/stream/0/posts/tag/[hashtag]
 
 		[[XTHTTPClient sharedClient] getPath:[NSString stringWithFormat:@"posts/tag/%@", searchBar.text]
 								  parameters:nil
@@ -222,7 +228,7 @@
 										 
 									 }];
 	}
-	else if(searchBar.selectedScopeButtonIndex == 1)
+	else if(searchBar.selectedScopeButtonIndex == kSearchByUser)
 	{
 		//bHlHS2xTNXFsblNEOmx5R0tsUzVxbG5TRA==
 		//https://api.nanek.net/users?q=query
@@ -272,7 +278,7 @@
 							DLog(@"user search FAIL: %@", operation.responseString);
 						}];
 	}
-	else if(searchBar.selectedScopeButtonIndex == 2)
+	else if(searchBar.selectedScopeButtonIndex == kSearchByPost)
 	{
 		//https://api.nanek.net/search?q=query
 
@@ -330,8 +336,7 @@
 
 - (void)searchBar:(UISearchBar *)searchBar selectedScopeButtonIndexDidChange:(NSInteger)selectedScope
 {
-	self.resultArray = [NSArray array];
-	[self.tableView reloadData];
+	[self searchBarSearchButtonClicked:searchBar];
 }
 
 @end

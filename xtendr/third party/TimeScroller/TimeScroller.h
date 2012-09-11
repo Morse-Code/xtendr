@@ -20,8 +20,11 @@
 
 @required
 
-- (UITableView *)tableViewForTimeScroller:(TimeScroller *)timeScroller;
-- (NSDate *)dateForCell:(UITableViewCell *)cell;
+-(UITableView *)tableViewForTimeScroller:(TimeScroller *)timeScroller;
+-(NSDate *)dateForCell:(UITableViewCell *)cell;
+
+@optional
+-(NSDate*)dateForIndexPath:(NSIndexPath*)indexPath;
 
 @end
 

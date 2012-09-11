@@ -34,7 +34,7 @@
 #import "TimeScroller.h"
 
 
-@interface XTProfileViewController () <NSFetchedResultsControllerDelegate>
+@interface XTProfileViewController () <NSFetchedResultsControllerDelegate, TimeScrollerDelegate>
 
 @property(weak) IBOutlet UIView					*headerView;
 @property(weak) IBOutlet UIImageView			*headerBackgroundImageView;
@@ -153,7 +153,7 @@
 
 	self.timeScroller = [[TimeScroller alloc] initWithDelegate:self];
 
-	self.tableView.backgroundColor	= [UIColor colorWithPatternImage:[UIImage imageNamed:@"timelineback"]];
+	self.tableView.backgroundColor	= [UIColor colorWithPatternImage:[UIImage imageNamed:@"furley_bg"]];
 	self.tableView.separatorStyle	= UITableViewCellSeparatorStyleNone;
 
 	[self.tableView registerNib:[UINib nibWithNibName:@"XTTimelineCell"
@@ -605,6 +605,7 @@
 	}
 }
 
+#pragma mark - timedelegate thing
 //You should return your UITableView here
 - (UITableView *)tableViewForTimeScroller:(TimeScroller *)timeScroller
 {
@@ -640,17 +641,15 @@
 
 -(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
-    if (!decelerate) {
-
+    if (!decelerate)
+	{
         [_timeScroller scrollViewDidEndDecelerating];
-
     }
 }
 
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
-
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
     [_timeScroller scrollViewDidEndDecelerating];
-
 }
 
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView

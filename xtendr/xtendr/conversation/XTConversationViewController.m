@@ -16,8 +16,9 @@
 #import "XTNewPostViewController.h"
 #import "XTProfileViewController.h"
 
+#import "TimeScroller.h"
 
-@interface XTConversationViewController () <NSFetchedResultsControllerDelegate>
+@interface XTConversationViewController () <NSFetchedResultsControllerDelegate, TimeScrollerDelegate>
 
 @property(weak) IBOutlet UIView					*headerView;
 
@@ -25,6 +26,8 @@
 @property(strong) NSArray						*idArray;
 
 @property(strong) NSFetchedResultsController	*fetchedResultsController;
+
+@property(strong) TimeScroller					*timeScroller;
 
 @end
 
@@ -57,9 +60,11 @@
 {
     [super viewDidLoad];
 
+	self.timeScroller = [[TimeScroller alloc] initWithDelegate:self];
+
 	self.idArray = [NSArray arrayWithObject:[NSNumber numberWithLongLong:[self.displayedPost.id longLongValue]]];
 
-	self.tableView.backgroundColor	= [UIColor colorWithPatternImage:[UIImage imageNamed:@"timelineback"]];
+	self.tableView.backgroundColor	= [UIColor colorWithPatternImage:[UIImage imageNamed:@"furley_bg"]];
 	self.tableView.separatorStyle	= UITableViewCellSeparatorStyleNone;
 
 
@@ -303,5 +308,61 @@
 					   animated:YES
 					 completion:nil];
 }
+
+#pragma mark - timedelegate thing
+//You should return your UITableView here
+- (UITableView *)tableViewForTimeScroller:(TimeScroller *)timeScroller
+{
+    return self.tableView;
+}
+
+//You should return an NSDate related to the UITableViewCell given. This will be
+//the date displayed when the TimeScroller is above that cell.
+-(NSDate *)dateForIndexPath:(NSIndexPath *)indexPath
+{
+	if(!self.fetchedResultsController.fetchedObjects || self.fetchedResultsController.fetchedObjects.count == 0)
+		return nil;
+
+	Post *post = [self.fetchedResultsController objectAtIndexPath:indexPath];
+	NSDate *date = [post created_at];
+
+	return date;
+}
+
+#pragma mark - View Scrolling header thing
+
+-(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    [_timeScroller scrollViewWillBeginDragging];
+}
+
+-(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    if (!decelerate)
+	{
+        [_timeScroller scrollViewDidEndDecelerating];
+    }
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    [_timeScroller scrollViewDidEndDecelerating];
+}
+
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+	if(scrollView.contentOffset.y < 0)
+	{
+		CGFloat extra = abs(scrollView.contentOffset.y);
+
+		CGRect rect = self.headerView.frame;
+		rect.origin.y = MIN(0, scrollView.contentOffset.y);
+		rect.size.height = 80 + extra;
+		self.headerView.frame = rect;
+	}
+
+    [_timeScroller scrollViewDidScroll];
+}
+
 
 @end

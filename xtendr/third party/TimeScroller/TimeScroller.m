@@ -25,7 +25,10 @@
 @property (nonatomic, copy) NSDateFormatter *monthDayDateFormatter;
 @property (nonatomic, copy) NSDateFormatter *monthDayYearDateFormatter;
 
-- (void)updateDisplayWithCell:(UITableViewCell *)cell;
+@property(strong) UIImage *background;
+
+- (void)updateDisplayWithIndexPath:(NSIndexPath *)indexPath;
+//- (void)updateDisplayWithCell:(UITableViewCell *)cell;
 - (void)captureTableViewAndScrollBar;
 - (void)checkChanges;
 - (void)invalidate;
@@ -44,20 +47,24 @@
 
 - (id)initWithDelegate:(id<TimeScrollerDelegate>)delegate
 {
-    UIImage *background = [[UIImage imageNamed:@"timescroll_pointer"] resizableImageWithCapInsets:UIEdgeInsetsMake(0.0f, 35.0f, 0.0f, 10.0f)];
+    self.background = [[UIImage imageNamed:@"timescroll_pointer"] resizableImageWithCapInsets:UIEdgeInsetsMake(0.0f, 35.0f, 0.0f, 10.0f)];
 
-    self = [super initWithFrame:CGRectMake(0.0f, 0.0f, 320.0f, background.size.height)];
+    self = [super initWithFrame:CGRectMake(0.0f, 0.0f, 320.0f, _background.size.height)];
     if (self)
 	{
         self.calendar = [NSCalendar currentCalendar];
 
-        self.frame = CGRectMake(0.0f, 0.0f, 320.0f, CGRectGetHeight(self.frame));
+        self.frame = CGRectMake(0.0f, 0.0f, 320.0f, _background.size.height);
         self.alpha = 0.0f;
         self.transform = CGAffineTransformMakeTranslation(10.0f, 0.0f);
 
-        _backgroundView = [[UIImageView alloc] initWithImage:background];
-        _backgroundView.frame = CGRectMake(CGRectGetWidth(self.frame) - 80.0f, 0.0f, 80.0f, CGRectGetHeight(self.frame));
+        _backgroundView = [[UIImageView alloc] initWithImage:_background];
+        _backgroundView.frame = CGRectMake(CGRectGetWidth(self.frame) - 80.0f,
+										   0.0f,
+										   80.0f,
+										   _background.size.height);
         [self addSubview:_backgroundView];
+		//_backgroundView.backgroundColor = [UIColor redColor];
 
         _handContainer = [[UIView alloc] initWithFrame:CGRectMake(5.0f, 4.0f, 20.0f, 20.0f)];
         [_backgroundView addSubview:_handContainer];
@@ -136,7 +143,7 @@
 {
     _tableView = [self.delegate tableViewForTimeScroller:self];
 
-    self.frame = CGRectMake(CGRectGetWidth(self.frame) - 10.0f, 0.0f, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
+    self.frame = CGRectMake(CGRectGetWidth(self.frame) - 10.0f, 0.0f, CGRectGetWidth(self.frame), _background.size.height);
 
     for (id subview in [_tableView subviews])
 	{
@@ -155,9 +162,21 @@
     }
 }
 
-- (void)updateDisplayWithCell:(UITableViewCell *)cell
+- (void)updateDisplayWithIndexPath:(NSIndexPath *)indexPath
 {
-    NSDate *date = [self.delegate dateForCell:cell];
+	NSDate *date;
+	
+
+	if([self.delegate respondsToSelector:@selector(dateForIndexPath:)])
+	{
+		date = [self.delegate dateForIndexPath:indexPath];
+	}
+	else
+	{
+		UITableViewCell * cell = [_tableView cellForRowAtIndexPath:indexPath];
+		date = [self.delegate dateForCell:cell];
+	}
+
 	if(!date)
 	{
 		return;
@@ -172,7 +191,35 @@
     NSDateComponents *todayComponents = [self.calendar components:NSYearCalendarUnit | NSMonthCalendarUnit | NSWeekOfYearCalendarUnit | NSWeekCalendarUnit | NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit fromDate:today];
     NSDateComponents *lastDateComponents = [self.calendar components:NSYearCalendarUnit | NSMonthCalendarUnit | NSWeekOfYearCalendarUnit | NSWeekCalendarUnit | NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit fromDate:_lastDate];
 
-    _timeLabel.text = [self.timeDateFormatter stringFromDate:date];
+    //_timeLabel.text = [self.timeDateFormatter stringFromDate:date];
+
+
+	NSTimeInterval numseconds = abs([date timeIntervalSinceNow]);
+    if(numseconds < 60*60) // 1 hour
+    {
+        int min = (int)numseconds/60;
+        if(numseconds< 60)
+        {
+            _timeLabel.text             = NSLocalizedString(@"now", @"");
+        }
+        else
+        {
+            _timeLabel.text             = [NSString stringWithFormat:NSLocalizedString(@"%dm ago", @""), MAX(1,(int)min)];
+        }
+    }
+    else if(numseconds < 60*60*24) // 1 day
+    {
+        int hour = (int)numseconds/60/60;
+        _timeLabel.text             = [NSString stringWithFormat:NSLocalizedString(@"%dh ago", @""), (int)hour];
+    }
+    else //if(numseconds < 60*60*24*4) // 1 week
+    {
+        int day = (int)numseconds/60/60/24;
+        _timeLabel.text             = [NSString stringWithFormat:NSLocalizedString(@"%dd ago", @""), (int)day];
+    }
+
+
+
 
     CGFloat currentHourAngle = 0.5f * ((lastDateComponents.hour * 60.0f) + lastDateComponents.minute);
     CGFloat newHourAngle = 0.5f * ((dateComponents.hour * 60.0f) + dateComponents.minute);
@@ -332,7 +379,7 @@
 
         dateLabelString = @"";
 
-        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - 80.0f, 0.0f, 80.0f, CGRectGetHeight(self.frame));
+        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - 80.0f, 0.0f, 80.0f, _background.size.height);
         timeLabelFrame = CGRectMake(30.0f, 4.0f, 100.0f, 20.0f);
         dateLabelAlpha = 0.0f;
 
@@ -342,7 +389,7 @@
 
         dateLabelString = @"Yesterday";
         dateLabelAlpha = 1.0f;
-        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - 85.0f, 0.0f, 85.0f, CGRectGetHeight(self.frame));
+        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - 85.0f, 0.0f, 85.0f, _background.size.height);
 
     } else if ((dateComponents.year == todayComponents.year) && (dateComponents.weekOfYear == todayComponents.weekOfYear)) {
 
@@ -357,7 +404,7 @@
             width = 95.0f;
         }
 
-        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - width, 0.0f, width, CGRectGetHeight(self.frame));
+        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - width, 0.0f, width, _background.size.height);
 
     } else if (dateComponents.year == todayComponents.year) {
 
@@ -368,7 +415,7 @@
 
         CGFloat width = [dateLabelString sizeWithFont:_dateLabel.font].width + 50.0f;
 
-        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - width, 0.0f, width, CGRectGetHeight(self.frame));
+        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - width, 0.0f, width, _background.size.height);
 
     } else {
 
@@ -378,7 +425,7 @@
 
         CGFloat width = [dateLabelString sizeWithFont:_dateLabel.font].width + 50.0f;
 
-        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - width, 0.0f, width, CGRectGetHeight(self.frame));
+        backgroundFrame = CGRectMake(CGRectGetWidth(self.frame) - width, 0.0f, width, _background.size.height);
 
     }
 
@@ -423,9 +470,9 @@
 
 
 	//Tonys improved stuff!
+	//TODO: replace this with a direct indexpath thing eh?
 	NSIndexPath * ip = [_tableView indexPathForRowAtPoint:point];
-	UITableViewCell * cell = [_tableView cellForRowAtIndexPath:ip];
-	[self updateDisplayWithCell:cell];
+	[self updateDisplayWithIndexPath:ip];
 }
 
 - (void)scrollViewDidEndDecelerating

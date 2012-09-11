@@ -115,7 +115,7 @@
 	self.tableView.dataSource	= self;
 	self.tableView.delegate		= self;
 
-	self.tableView.backgroundColor	= [UIColor colorWithPatternImage:[UIImage imageNamed:@"timelineback"]];
+	self.tableView.backgroundColor	= [UIColor colorWithPatternImage:[UIImage imageNamed:@"furley_bg"]];
 	self.tableView.separatorStyle	= UITableViewCellSeparatorStyleNone;
 	[self.view addSubview:self.tableView];
 
@@ -794,6 +794,18 @@
 
 }
 
+-(void)addLocation:(id)sender
+{
+
+	//—at
+	[self.navigation collapse];
+}
+
+-(void)addMusic:(id)sender
+{
+	[self.navigation collapse];
+}
+
 #pragma mark - expandable navigation delegate
 
 -(NSArray*)itemsForExpandableNavigation:(ExpandableNavigation*)nav
@@ -821,6 +833,26 @@
 	
 	[self.view insertSubview:photobutton belowSubview:self.addPostButton];
     [array addObject:photobutton];
+
+	UIButton * locationbutton = [UIButton buttonWithType:UIButtonTypeCustom];
+	locationbutton.frame = CGRectMake(0, 0, 48, 48);
+	[locationbutton setImage:[UIImage imageNamed:@"addlocation"]
+				 forState:UIControlStateNormal];
+
+	[locationbutton addTarget:self action:@selector(addLocation:) forControlEvents:UIControlEventTouchUpInside];
+
+	[self.view insertSubview:locationbutton belowSubview:self.addPostButton];
+    [array addObject:locationbutton];
+
+	UIButton * ipodbutton = [UIButton buttonWithType:UIButtonTypeCustom];
+	ipodbutton.frame = CGRectMake(0, 0, 48, 48);
+	[ipodbutton setImage:[UIImage imageNamed:@"addipod"]
+				 forState:UIControlStateNormal];
+
+	[ipodbutton addTarget:self action:@selector(addMusic:) forControlEvents:UIControlEventTouchUpInside];
+
+	[self.view insertSubview:ipodbutton belowSubview:self.addPostButton];
+    [array addObject:ipodbutton];
 	
     return array;
 }
